@@ -1,5 +1,5 @@
-import formidable from 'formidable';
 import fs from 'fs';
+import path from 'path';
 
 export const config = {
   api: {
@@ -7,22 +7,17 @@ export const config = {
   },
 };
 
-export default async (req, res) => {
-  const form = new formidable.IncomingForm();
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-  form.parse(req, async (err, fields, files) => {
-    if (err || !files.gambar) {
-      return res.status(400).json({ error: 'Gagal menerima gambar' });
-    }
-
-    const file = files.gambar;
-    const data = fs.readFileSync(file.filepath);
-    const base64 = data.toString('base64');
-    const url = `data:${file.mimetype};base64,${base64}`;
-
-    res.status(200).json({
-      message: 'Gambar diterima di Vercel',
-      url: url
-    });
+  const chunks = [];
+  req.on('data', (chunk) => chunks.push(chunk));
+  req.on('end', () => {
+    const buffer = Buffer.concat(chunks);
+    const filePath = path.join(process.cwd(), 'public', 'latest.jpg');
+    fs.writeFileSync(filePath, buffer);
+    res.status(200).json({ message: 'Gambar diterima', size: buffer.length });
   });
-};
+}
