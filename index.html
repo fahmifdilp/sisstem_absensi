@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload Gambar ESP32-CAM</title>
+</head>
+<body>
+  <h1>Upload Gambar dari ESP32-CAM</h1>
+
+  <form id="uploadForm">
+    <input type="file" name="gambar" id="gambarInput" accept="image/*" required />
+    <button type="submit">Kirim</button>
+  </form>
+
+  <div id="previewContainer" style="margin-top: 20px;">
+    <h3>Preview Gambar:</h3>
+    <img id="previewImage" src="" alt="Belum ada gambar" style="max-width: 100%; height: auto;" />
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const previewImage = document.getElementById('previewImage');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('gambarInput');
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('gambar', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        previewImage.src = data.url;  // tampilkan preview gambar
+      } else {
+        alert('Gagal upload gambar!');
+      }
+    });
+  </script>
+</body>
+</html>
